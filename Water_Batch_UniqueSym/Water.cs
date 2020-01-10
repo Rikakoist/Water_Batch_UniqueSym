@@ -11,6 +11,7 @@ using ESRI.ArcGIS.Geodatabase;
 using ESRI.ArcGIS.Display;
 using ESRI.ArcGIS.DataSourcesRaster;
 using System.Windows.Forms;
+using System.Collections.Generic;
 
 namespace Water_Batch_UniqueSym
 {
@@ -83,9 +84,9 @@ namespace Water_Batch_UniqueSym
             // TODO: Define values for the public properties
             //
             base.m_category = "SRTP"; //localizable text
-            base.m_caption = "洪水色带表示v2.1(20191121)。";  //localizable text
+            base.m_caption = "洪水色带表示v3.0(20200110)。";  //localizable text
             base.m_message = "将所有栅格图层以用户选择的起止颜色创建的色带表示，并将值为0的栅格设为透明色。";  //localizable text 
-            base.m_toolTip = "洪水色带表示v2.1(20191121)。";  //localizable text 
+            base.m_toolTip = "洪水色带表示v3.0(20200110)。";  //localizable text 
             base.m_name = "Water_unique";   //unique id, non-localizable (e.g. "MyCategory_ArcMapCommand")
 
             try
@@ -141,74 +142,75 @@ namespace Water_Batch_UniqueSym
                 m_map = mxDocument.FocusMap;
                 if (m_map == null)
                     return;
-                //ISelection selection = m_map.FeatureSelection;
-                
+
                 if (m_map.LayerCount != 0)
                 {
-                    SelectionForm SF = new SelectionForm();
-                    if (SF.ShowDialog() == DialogResult.OK)
+                    //选颜色
+                    ColorSelection CS = new ColorSelection();
+                    if (CS.ShowDialog() != DialogResult.OK)
                     {
-                        FromIC = SF.FromC;
-                        ToIC = SF.ToC;
-                        SF.Dispose();
+                        CS.Dispose();
+                        return;
+                    }
+                    FromIC = CS.FromC;
+                    ToIC = CS.ToC;
+                    CS.Dispose();
 
-                        //Create a CancelTracker.
-                        ITrackCancel pTrackCancel = new CancelTrackerClass();
-
-                        //Create the ProgressDialog. This automatically displays the dialog
-                        IProgressDialogFactory pProgDlgFactory = new ProgressDialogFactoryClass();
-                        IProgressDialog2 pProDlg = pProgDlgFactory.Create(pTrackCancel, m_application.hWnd) as IProgressDialog2;
-                        pProDlg.CancelEnabled = true;
-                        pProDlg.Title = "正在进行唯一值计算";
-                        pProDlg.Description = "唯一值计算中，请稍候...";
-                        
-                        pProDlg.Animation = esriProgressAnimationTypes.esriProgressSpiral;
-
-                        IStepProgressor pStepPro = pProDlg as IStepProgressor;
-                        pStepPro.MinRange = 0;
-                        pStepPro.MaxRange = m_map.LayerCount;
-                        pStepPro.StepValue = 1;
-                        pStepPro.Message = "初始化中...";
-
-
-                        bool bCont = true;
-
-                        for (int i = 0; i < m_map.LayerCount; i++)
-                        {
-                            //m_application.StatusBar.set_Message(0, i.ToString());
-                            pStepPro.Message = "已完成(" + i.ToString() + "/" + m_map.LayerCount.ToString() + ")";
-                            bCont = pTrackCancel.Continue();
-                            if (!bCont)
-                                break;
-
-                            IRasterLayer rasterLayer = m_map.Layer[i] as IRasterLayer;
-                            if (rasterLayer == null)
-                                continue;
-
-                            UniqueValueRender(rasterLayer);
-                        }
-                        pProDlg.HideDialog();
-                        IActiveView activeView = m_map as IActiveView;
-                        activeView.Refresh();
+                    //选图层
+                    LayerSelection LS = new LayerSelection(m_map.Layers);
+                    if (LS.ShowDialog() != DialogResult.OK)
+                    {
+                        LS.Dispose();
+                        return;
+                    }
+                    List<int> SelectedLyrIndex = LS.selectionIndex;
+                    LS.Dispose();
+                    if (SelectedLyrIndex.Count < 1)
+                    {
+                        throw new ArgumentOutOfRangeException("未选中任何图层！");
                     }
 
-                    //IColorSelector colorSelector1 = new ColorSelectorClass();
-                    //if (colorSelector1.DoModal(m_application.hWnd))
-                    //{
-                    //    FromIC = colorSelector1.Color as IRgbColor;
-                    //    IColorSelector colorSelector2 = new ColorSelectorClass();
-                    //    if (colorSelector2.DoModal(m_application.hWnd))
-                    //    {
-                    //        ToIC = colorSelector2.Color as IRgbColor;
-                    //        for (int i = 0; i < m_map.LayerCount; i++)
-                    //        {
-                    //            IRasterLayer rasterLayer = m_map.Layer[i] as IRasterLayer;
-                    //            if (rasterLayer == null)
-                    //                continue;
-                    //            UniqueValueRender(rasterLayer);
-                    //        }
-                    //    }
-                    //}
+                    //Create a CancelTracker.
+                    ITrackCancel pTrackCancel = new CancelTrackerClass();
+
+                    //Create the ProgressDialog. This automatically displays the dialog
+                    IProgressDialogFactory pProgDlgFactory = new ProgressDialogFactoryClass();
+                    IProgressDialog2 pProDlg = pProgDlgFactory.Create(pTrackCancel, m_application.hWnd) as IProgressDialog2;
+                    pProDlg.CancelEnabled = true;
+                    pProDlg.Title = "正在进行唯一值计算";
+                    pProDlg.Description = "唯一值计算中，请稍候...";
+
+                    pProDlg.Animation = esriProgressAnimationTypes.esriProgressSpiral;
+
+                    IStepProgressor pStepPro = pProDlg as IStepProgressor;
+                    pStepPro.MinRange = 0;
+                    pStepPro.MaxRange = m_map.LayerCount;
+                    pStepPro.StepValue = 1;
+                    pStepPro.Message = "初始化中...";
+
+
+                    bool bCont = true;
+
+                    for (int i = 0; i < SelectedLyrIndex.Count; i++)
+                    {
+                        //m_application.StatusBar.set_Message(0, i.ToString());
+                        pStepPro.Message = "已完成(" + i.ToString() + "/" + SelectedLyrIndex.Count.ToString() + ")";
+                        bCont = pTrackCancel.Continue();
+                        if (!bCont)
+                            break;
+
+                        IRasterLayer rasterLayer = m_map.Layer[SelectedLyrIndex[i]] as IRasterLayer;
+                        if (rasterLayer == null)
+                        {
+                            pStepPro.Message = "选中的图层非栅格图层...";
+                            continue;
+                        }
+
+                        UniqueValueRender(rasterLayer);
+                    }
+                    pProDlg.HideDialog();
+                    IActiveView activeView = m_map as IActiveView;
+                    activeView.PartialRefresh(esriViewDrawPhase.esriViewAll,null,null);
                 }
             }
             catch (Exception err)

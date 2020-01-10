@@ -100,6 +100,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LayerSelection.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LayerSelection.Designer.cs">
+      <DependentUpon>LayerSelection.cs</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\IRgbColorSettings.cs" />
     <Compile Include="Properties\IRgbColorSettings.Designer.cs">
@@ -112,21 +118,24 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="SelectionForm.cs">
+    <Compile Include="ColorSelection.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SelectionForm.Designer.cs">
-      <DependentUpon>SelectionForm.cs</DependentUpon>
+    <Compile Include="ColorSelection.Designer.cs">
+      <DependentUpon>ColorSelection.cs</DependentUpon>
     </Compile>
     <Compile Include="Water.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="LayerSelection.resx">
+      <DependentUpon>LayerSelection.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="SelectionForm.resx">
-      <DependentUpon>SelectionForm.cs</DependentUpon>
+    <EmbeddedResource Include="ColorSelection.resx">
+      <DependentUpon>ColorSelection.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Water.bmp" />
   </ItemGroup>

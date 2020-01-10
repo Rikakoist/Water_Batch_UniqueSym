@@ -1,6 +1,6 @@
 ﻿namespace Water_Batch_UniqueSym
 {
-    partial class SelectionForm
+    partial class ColorSelection
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SelectionForm));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ColorSelection));
             this.FromColorPictureBox = new System.Windows.Forms.PictureBox();
             this.ToColorPictureBox = new System.Windows.Forms.PictureBox();
             this.ConfirmButton = new System.Windows.Forms.Button();
@@ -75,10 +75,11 @@
             // ConfirmButton
             // 
             this.ConfirmButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.ConfirmButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.ConfirmButton.Location = new System.Drawing.Point(205, 193);
             this.ConfirmButton.Name = "ConfirmButton";
             this.ConfirmButton.Size = new System.Drawing.Size(89, 32);
-            this.ConfirmButton.TabIndex = 1;
+            this.ConfirmButton.TabIndex = 0;
             this.ConfirmButton.Text = "确定";
             this.ConfirmButton.UseVisualStyleBackColor = true;
             this.ConfirmButton.Click += new System.EventHandler(this.ConfirmButton_Click);
@@ -86,10 +87,11 @@
             // AbortButton
             // 
             this.AbortButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.AbortButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.AbortButton.Location = new System.Drawing.Point(310, 193);
             this.AbortButton.Name = "AbortButton";
             this.AbortButton.Size = new System.Drawing.Size(89, 32);
-            this.AbortButton.TabIndex = 0;
+            this.AbortButton.TabIndex = 1;
             this.AbortButton.Text = "取消";
             this.AbortButton.UseVisualStyleBackColor = true;
             this.AbortButton.Click += new System.EventHandler(this.AbortButton_Click);
@@ -184,7 +186,7 @@
             this.PreviewPictureBox.TabIndex = 5;
             this.PreviewPictureBox.TabStop = false;
             // 
-            // SelectionForm
+            // ColorSelection
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.ClientSize = new System.Drawing.Size(414, 237);
@@ -202,7 +204,9 @@
             this.ImeMode = System.Windows.Forms.ImeMode.Off;
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.MaximizeBox = false;
-            this.Name = "SelectionForm";
+            this.Name = "ColorSelection";
+            this.ShowIcon = false;
+            this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "设置唯一值起止颜色";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SelectionForm_FormClosing);

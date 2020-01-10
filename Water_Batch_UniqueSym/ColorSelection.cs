@@ -12,14 +12,14 @@ using System.Windows.Forms;
 
 namespace Water_Batch_UniqueSym
 {
-    public partial class SelectionForm : Form
+    public partial class ColorSelection : Form
     {
         public IRgbColor FromC = new RgbColorClass();
         public IRgbColor ToC = new RgbColorClass();
         Color F = Color.White;
         Color T = Color.Black;
 
-        public SelectionForm()
+        public ColorSelection()
         {
             InitializeComponent();
         }
