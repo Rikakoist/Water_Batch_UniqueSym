@@ -34,6 +34,9 @@
             this.SelectInverseButton = new System.Windows.Forms.Button();
             this.AbortButton = new System.Windows.Forms.Button();
             this.ConfirmButton = new System.Windows.Forms.Button();
+            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.SelectedCountLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // LayerSelectionCheckedListBox
@@ -45,8 +48,9 @@
             this.LayerSelectionCheckedListBox.FormattingEnabled = true;
             this.LayerSelectionCheckedListBox.Location = new System.Drawing.Point(12, 60);
             this.LayerSelectionCheckedListBox.Name = "LayerSelectionCheckedListBox";
-            this.LayerSelectionCheckedListBox.Size = new System.Drawing.Size(460, 424);
+            this.LayerSelectionCheckedListBox.Size = new System.Drawing.Size(460, 439);
             this.LayerSelectionCheckedListBox.TabIndex = 5;
+            this.LayerSelectionCheckedListBox.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.LayerSelectionCheckedListBox_ItemCheck);
             // 
             // SelectAllButton
             // 
@@ -85,7 +89,7 @@
             // 
             this.AbortButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.AbortButton.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.AbortButton.Location = new System.Drawing.Point(400, 521);
+            this.AbortButton.Location = new System.Drawing.Point(400, 508);
             this.AbortButton.Name = "AbortButton";
             this.AbortButton.Size = new System.Drawing.Size(72, 28);
             this.AbortButton.TabIndex = 1;
@@ -97,7 +101,7 @@
             // 
             this.ConfirmButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.ConfirmButton.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.ConfirmButton.Location = new System.Drawing.Point(310, 521);
+            this.ConfirmButton.Location = new System.Drawing.Point(310, 508);
             this.ConfirmButton.Name = "ConfirmButton";
             this.ConfirmButton.Size = new System.Drawing.Size(72, 28);
             this.ConfirmButton.TabIndex = 0;
@@ -105,10 +109,26 @@
             this.ConfirmButton.UseVisualStyleBackColor = true;
             this.ConfirmButton.Click += new System.EventHandler(this.ConfirmButton_Click);
             // 
+            // statusStrip1
+            // 
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.SelectedCountLabel});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 539);
+            this.statusStrip1.Name = "statusStrip1";
+            this.statusStrip1.Size = new System.Drawing.Size(484, 22);
+            this.statusStrip1.TabIndex = 6;
+            this.statusStrip1.Text = "statusStrip1";
+            // 
+            // SelectedCountLabel
+            // 
+            this.SelectedCountLabel.Name = "SelectedCountLabel";
+            this.SelectedCountLabel.Size = new System.Drawing.Size(0, 17);
+            // 
             // LayerSelection
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.ClientSize = new System.Drawing.Size(484, 561);
+            this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.AbortButton);
             this.Controls.Add(this.ConfirmButton);
             this.Controls.Add(this.SelectInverseButton);
@@ -123,7 +143,10 @@
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "选择要进行唯一值化的图层";
+            this.statusStrip1.ResumeLayout(false);
+            this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -135,5 +158,7 @@
         private System.Windows.Forms.Button SelectInverseButton;
         private System.Windows.Forms.Button AbortButton;
         private System.Windows.Forms.Button ConfirmButton;
+        private System.Windows.Forms.StatusStrip statusStrip1;
+        private System.Windows.Forms.ToolStripStatusLabel SelectedCountLabel;
     }
 }

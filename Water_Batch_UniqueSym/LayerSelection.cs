@@ -73,27 +73,28 @@ namespace Water_Batch_UniqueSym
                     LayerSelectionCheckedListBox.SetItemChecked(i, !LayerSelectionCheckedListBox.GetItemChecked(i));
                 }
             }
-            //CheckNullSelection();
+        }
+
+        //选择更改后的显示与操作
+        private void LayerSelectionCheckedListBox_ItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            if (e.NewValue == CheckState.Checked)
+            {
+                SelectedCountLabel.Text = "已选择" + (LayerSelectionCheckedListBox.CheckedItems.Count + 1).ToString() + "/" + LayerSelectionCheckedListBox.Items.Count.ToString() + "图层。";
+                CheckNullSelection(LayerSelectionCheckedListBox.CheckedItems.Count + 1);
+            }
+            else
+            {
+                SelectedCountLabel.Text = "已选择" + (LayerSelectionCheckedListBox.CheckedItems.Count - 1).ToString() + "/" + LayerSelectionCheckedListBox.Items.Count.ToString() + "图层。";
+                CheckNullSelection(LayerSelectionCheckedListBox.CheckedItems.Count - 1);
+            }
         }
 
         //有项目选中更改后事件
-        private void CheckNullSelection()
+        private void CheckNullSelection(int value)
         {
-            int i = 0;
-            for (i = 0; i < LayerSelectionCheckedListBox.Items.Count; i++)
-            {
-                if (LayerSelectionCheckedListBox.GetItemChecked(i))
-                {
-                    break;
-                }
-            }
-            ConfirmButton.Enabled = (i == LayerSelectionCheckedListBox.Items.Count ? false : true);
-        }
-
-        //有bug
-        private void LayerSelectionCheckedListBox_Validated(object sender, EventArgs e)
-        {
-            CheckNullSelection();
+            ConfirmButton.Enabled = value == 0 ? false : true;
+            ConfirmButton.Cursor = value == 0 ? Cursors.No : Cursors.Hand;
         }
 
         //确认
