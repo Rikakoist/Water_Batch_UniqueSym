@@ -13,11 +13,12 @@ namespace Water_Batch_UniqueSym
 {
     public partial class LayerSelection : Form
     {
-        public List<int> selectionIndex = new List<int>();
+        public List<int> selectionIndex = new List<int>();  //选择的索引列表
+
         public LayerSelection(IEnumLayer enumLayer)
         {
             InitializeComponent();
-            LayerSelectionCheckedListBox.Items.Clear(); //启动时清空
+            LayerSelectionCheckedListBox.Items.Clear(); //启动时清空选定项
 
             //遍历图层
             enumLayer.Reset();
@@ -27,20 +28,20 @@ namespace Water_Batch_UniqueSym
                 string lyrInfo = layer.Name;
                 if (layer is IRasterLayer rasterLayer)
                 {
-                    LayerSelectionCheckedListBox.Items.Add(lyrInfo, true);   //栅格勾选
+                    LayerSelectionCheckedListBox.Items.Add(lyrInfo, true);   //是栅格则勾选
                 }
                 else
                 {
                     LayerSelectionCheckedListBox.Items.Add(lyrInfo, false);
                 }
-                layer =enumLayer.Next();
+                layer = enumLayer.Next();
             }
-            if(LayerSelectionCheckedListBox.Items.Count<1)
+            if (LayerSelectionCheckedListBox.Items.Count < 1)
             {
                 throw new ArgumentOutOfRangeException("传入图层个数非法！");
             }
         }
-        
+
 
         //收集选中图层索引
         private void CollectIndex()

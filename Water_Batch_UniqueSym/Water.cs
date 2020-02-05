@@ -75,8 +75,8 @@ namespace Water_Batch_UniqueSym
 
         private IApplication m_application;
         IMap m_map = null;
-        IRgbColor FromIC= new RgbColorClass();
-        IRgbColor ToIC= new RgbColorClass();
+        IRgbColor FromIC = new RgbColorClass();
+        IRgbColor ToIC = new RgbColorClass();
 
         public Water()
         {
@@ -191,6 +191,7 @@ namespace Water_Batch_UniqueSym
 
                     bool bCont = true;
 
+                    //对每一个选中的图层进行唯一值化
                     for (int i = 0; i < SelectedLyrIndex.Count; i++)
                     {
                         //m_application.StatusBar.set_Message(0, i.ToString());
@@ -199,18 +200,22 @@ namespace Water_Batch_UniqueSym
                         if (!bCont)
                             break;
 
-                        IRasterLayer rasterLayer = m_map.Layer[SelectedLyrIndex[i]] as IRasterLayer;
-                        if (rasterLayer == null)
+                        if (!(m_map.Layer[SelectedLyrIndex[i]] is IRasterLayer rasterLayer))
                         {
                             pStepPro.Message = "选中的图层非栅格图层...";
                             continue;
                         }
 
-                        UniqueValueRender(rasterLayer);
+                        IRasterRenderer pRasterRenderer = UniqueValueRender(rasterLayer); //渲染唯一值
+
+                        //设置图层渲染器并更新
+                        rasterLayer.Renderer = pRasterRenderer;
+                        pRasterRenderer.Update();
                     }
                     pProDlg.HideDialog();
+                    //刷新
                     IActiveView activeView = m_map as IActiveView;
-                    activeView.PartialRefresh(esriViewDrawPhase.esriViewAll,null,null);
+                    activeView.PartialRefresh(esriViewDrawPhase.esriViewAll, null, null);
                 }
             }
             catch (Exception err)
@@ -219,20 +224,33 @@ namespace Water_Batch_UniqueSym
             }
         }
 
-        public void UniqueValueRender(IRasterLayer rasterLayer, string renderfiled = "Value")
+        /// <summary>
+        /// 设置图层渲染器。
+        /// </summary>
+        /// <param name="rasterLayer">需要渲染唯一值的栅格图层。</param>
+        /// <param name="renderfiled">渲染的字段（可选，默认为Value）。</param>
+        /// <returns></returns>
+        public IRasterRenderer UniqueValueRender(IRasterLayer rasterLayer, string renderfiled = "Value")
         {
             try
             {
-                IRasterUniqueValueRenderer uniqueValueRenderer = new RasterUniqueValueRendererClass();
-                uniqueValueRenderer.Field = renderfiled;
+                //这是从头用到尾的对象
+                IRasterUniqueValueRenderer uniqueValueRenderer = new RasterUniqueValueRendererClass
+                {
+                    Field = renderfiled
+                };
                 IRasterRenderer pRasterRenderer = uniqueValueRenderer as IRasterRenderer;
 
+                //计算栅格唯一值
                 IRasterCalcUniqueValues calcUniqueValues = new RasterCalcUniqueValuesClass();
                 IUniqueValues uniqueValues = new UniqueValuesClass();
-                calcUniqueValues.AddFromRaster(rasterLayer.Raster, 0, uniqueValues);//iBand=0  
+                calcUniqueValues.AddFromRaster(rasterLayer.Raster, 0, uniqueValues);
 
+                //设置唯一值
                 IRasterRendererUniqueValues renderUniqueValues = uniqueValueRenderer as IRasterRendererUniqueValues;
                 renderUniqueValues.UniqueValues = uniqueValues;
+
+                //创建色带
                 IRgbColor pFromColor = FromIC;
                 IRgbColor pToColor = ToIC;
                 IAlgorithmicColorRamp colorRamp = new AlgorithmicColorRampClass
@@ -241,14 +259,17 @@ namespace Water_Batch_UniqueSym
                     ToColor = pToColor,
                     Size = uniqueValues.Count
                 };
-                bool pOk;
-                colorRamp.CreateRamp(out pOk);
+                colorRamp.CreateRamp(out bool pOk);
 
+                //设置标题
                 uniqueValueRenderer.HeadingCount = 1;
                 uniqueValueRenderer.set_Heading(0, "All Data Value");
                 uniqueValueRenderer.set_ClassCount(0, uniqueValues.Count);
+
+                //设置色带
                 IRasterRendererColorRamp pRasterRendererColorRamp = uniqueValueRenderer as IRasterRendererColorRamp;
                 pRasterRendererColorRamp.ColorRamp = colorRamp;
+
                 //需要对算出来的唯一值升序重排
                 double[] tmp = new double[uniqueValues.Count];
                 for (int i = 0; i < uniqueValues.Count; i++)
@@ -256,34 +277,41 @@ namespace Water_Batch_UniqueSym
                     tmp[i] = Convert.ToDouble(uniqueValues.get_UniqueValue(i));
                 }
                 System.Array.Sort(tmp);
+
+                //对每一个唯一值设置颜色
                 for (int i = 0; i < uniqueValues.Count; i++)
                 {
+                    //添加唯一值并设置标签
                     uniqueValueRenderer.AddValue(0, i, tmp[i]);
                     uniqueValueRenderer.set_Label(0, i, tmp[i].ToString());
+
+                    //透明色及参数
                     IRgbColor zerocolor = new RgbColorClass()
                     {
                         Transparency = 0,
                         NullColor = true,
                     };
-                    IFillSymbol fs = new SimpleFillSymbol();
-                    if (tmp[i] == 0)
+
+                    IFillSymbol fs = new SimpleFillSymbol();    //唯一值填充符号
+                    if (tmp[i] == 0)    //将值为0的栅格颜色设为透明
                     {
-                        fs = new SimpleFillSymbol();
-                        fs.Color = zerocolor;
+                        fs = new SimpleFillSymbol
+                        {
+                            Color = zerocolor
+                        };
                     }
-                    else
+                    else   //值不为零则设置为色带对应索引颜色
                     {
                         fs.Color = colorRamp.get_Color(i);
                     }
-
-                    uniqueValueRenderer.set_Symbol(0, i, fs as ISymbol);
+                    uniqueValueRenderer.set_Symbol(0, i, fs as ISymbol);    //对唯一值设置色带对应颜色
                 }
-                rasterLayer.Renderer = pRasterRenderer;
-                pRasterRenderer.Update();
+                return pRasterRenderer;
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString());
+                return null;
             }
         }
         #endregion
