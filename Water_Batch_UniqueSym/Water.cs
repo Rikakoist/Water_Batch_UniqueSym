@@ -75,6 +75,9 @@ namespace Water_Batch_UniqueSym
         #endregion
         #endregion
 
+        /// <summary>
+        /// 应用类型枚举。
+        /// </summary>
         private enum ApplicationType
         {
             None = 0,
@@ -83,11 +86,13 @@ namespace Water_Batch_UniqueSym
         }
 
         private IApplication m_application;
+        IActiveView activeView;
         IMap m_map = null;
         IScene m_scene = null;
         IRgbColor FromIC = new RgbColorClass();
         IRgbColor ToIC = new RgbColorClass();
         ApplicationType applicationType = ApplicationType.None;
+        List<int> SelectedLyrIndex;
 
         public Water()
         {
@@ -154,6 +159,7 @@ namespace Water_Batch_UniqueSym
                 }
                 IDocument document = m_application.Document;
 
+                //根据应用类型初始化
                 switch (applicationType)
                 {
                     case ApplicationType.ArcMap:
@@ -161,7 +167,19 @@ namespace Water_Batch_UniqueSym
                             IMxDocument mxDocument = (IMxDocument)(document);
                             if (mxDocument != null)
                                 m_map = mxDocument.FocusMap;
+                            if (m_map == null)
+                                return;
+                            activeView = m_map as IActiveView;
 
+                            //有图层则选颜色
+                            if (m_map.LayerCount == 0)
+                                return;
+                            if (SelectColor() == false)
+                                return;
+
+                            //选图层
+                            if (SelectLayer(m_map.Layers) == false)
+                                return;
                             break;
                         }
                     case ApplicationType.ArcScene:
@@ -169,92 +187,134 @@ namespace Water_Batch_UniqueSym
                             ISxDocument sxDocument = (ISxDocument)(document);
                             if (sxDocument != null)
                                 m_scene = sxDocument.Scene;
+                            if (m_scene == null)
+                                return;
+                            activeView = m_scene as IActiveView;
+
+                            //有图层则选颜色
+                            if (m_scene.LayerCount == 0)
+                                return;
+                            if (SelectColor() == false)
+                                return;
+
+                            //选图层
+                            if (SelectLayer(m_scene.Layers) == false)
+                                return;
                             break;
                         }
-                }
-
-                if (m_map == null)
-                    return;
-
-                if (m_map.LayerCount != 0)
-                {
-                    //选颜色
-                    ColorSelection CS = new ColorSelection();
-                    if (CS.ShowDialog() != DialogResult.OK)
-                    {
-                        CS.Dispose();
-                        return;
-                    }
-                    FromIC = CS.FromC;
-                    ToIC = CS.ToC;
-                    CS.Dispose();
-
-                    //选图层
-                    LayerSelection LS = new LayerSelection(m_map.Layers);
-                    if (LS.ShowDialog() != DialogResult.OK)
-                    {
-                        LS.Dispose();
-                        return;
-                    }
-                    List<int> SelectedLyrIndex = LS.selectionIndex;
-                    LS.Dispose();
-                    if (SelectedLyrIndex.Count < 1)
-                    {
-                        throw new ArgumentOutOfRangeException("未选中任何图层！");
-                    }
-
-                    //Create a CancelTracker.
-                    ITrackCancel pTrackCancel = new CancelTrackerClass();
-
-                    //Create the ProgressDialog. This automatically displays the dialog
-                    IProgressDialogFactory pProgDlgFactory = new ProgressDialogFactoryClass();
-                    IProgressDialog2 pProDlg = pProgDlgFactory.Create(pTrackCancel, m_application.hWnd) as IProgressDialog2;
-                    pProDlg.CancelEnabled = true;
-                    pProDlg.Title = "正在进行唯一值计算";
-                    pProDlg.Description = "唯一值计算中，请稍候...";
-
-                    pProDlg.Animation = esriProgressAnimationTypes.esriProgressSpiral;
-
-                    IStepProgressor pStepPro = pProDlg as IStepProgressor;
-                    pStepPro.MinRange = 0;
-                    pStepPro.MaxRange = m_map.LayerCount;
-                    pStepPro.StepValue = 1;
-                    pStepPro.Message = "初始化中...";
-
-
-                    bool bCont = true;
-
-                    //对每一个选中的图层进行唯一值化
-                    for (int i = 0; i < SelectedLyrIndex.Count; i++)
-                    {
-                        //m_application.StatusBar.set_Message(0, i.ToString());
-                        pStepPro.Message = "已完成(" + i.ToString() + "/" + SelectedLyrIndex.Count.ToString() + ")";
-                        bCont = pTrackCancel.Continue();
-                        if (!bCont)
-                            break;
-
-                        if (!(m_map.Layer[SelectedLyrIndex[i]] is IRasterLayer rasterLayer))
+                    default:
                         {
-                            pStepPro.Message = "选中的图层非栅格图层...";
-                            continue;
+                            throw new ArgumentException("未指定应用类型。");
                         }
-
-                        IRasterRenderer pRasterRenderer = UniqueValueRender(rasterLayer); //渲染唯一值
-
-                        //设置图层渲染器并更新
-                        rasterLayer.Renderer = pRasterRenderer;
-                        pRasterRenderer.Update();
-                    }
-                    pProDlg.HideDialog();
-                    //刷新
-                    IActiveView activeView = m_map as IActiveView;
-                    activeView.PartialRefresh(esriViewDrawPhase.esriViewAll, null, null);
                 }
+
+                //Create a CancelTracker.
+                ITrackCancel pTrackCancel = new CancelTrackerClass();
+
+                //Create the ProgressDialog. This automatically displays the dialog
+                IProgressDialogFactory pProgDlgFactory = new ProgressDialogFactoryClass();
+                IProgressDialog2 pProDlg = pProgDlgFactory.Create(pTrackCancel, m_application.hWnd) as IProgressDialog2;
+                pProDlg.CancelEnabled = true;
+                pProDlg.Title = "正在进行唯一值计算";
+                pProDlg.Description = "唯一值计算中，请稍候...";
+
+                pProDlg.Animation = esriProgressAnimationTypes.esriProgressSpiral;
+
+                IStepProgressor pStepPro = pProDlg as IStepProgressor;
+                pStepPro.MinRange = 0;
+                pStepPro.MaxRange = SelectedLyrIndex.Count;
+                pStepPro.StepValue = 1;
+                pStepPro.Message = "初始化中...";
+
+
+                bool bCont = true;
+
+                //对每一个选中的图层进行唯一值化
+                for (int i = 0; i < SelectedLyrIndex.Count; i++)
+                {
+                    //m_application.StatusBar.set_Message(0, i.ToString());
+                    pStepPro.Message = "已完成(" + i.ToString() + "/" + SelectedLyrIndex.Count.ToString() + ")";
+                    bCont = pTrackCancel.Continue();
+                    if (!bCont)
+                        break;
+
+                    IRasterLayer rasterLayer = null;
+                    switch (applicationType)
+                    {
+                        case ApplicationType.ArcMap:
+                            {
+                                rasterLayer = m_map.Layer[SelectedLyrIndex[i]] as IRasterLayer;
+                                break;
+                            }
+                        case ApplicationType.ArcScene:
+                            {
+                                rasterLayer = m_scene.Layer[SelectedLyrIndex[i]] as IRasterLayer;
+                                break;
+                            }
+                        default:
+                            {
+                                throw new ArgumentException("未指定应用类型。");
+                            }
+                    }
+                    if (rasterLayer == null)
+                    {
+                        pStepPro.Message = "选中的图层非栅格图层...";
+                        continue;
+                    }
+
+                    //设置图层渲染器并更新
+                    IRasterRenderer pRasterRenderer = UniqueValueRender(rasterLayer); //渲染唯一值
+                    rasterLayer.Renderer = pRasterRenderer;
+                    pRasterRenderer.Update();
+                }
+                pProDlg.HideDialog();
+                //刷新
+                activeView.PartialRefresh(esriViewDrawPhase.esriViewAll, null, null);
             }
             catch (Exception err)
             {
                 MessageBox.Show(err.ToString());
             }
+        }
+
+        /// <summary>
+        /// 选择起止颜色。
+        /// </summary>
+        /// <returns>操作是否成功。</returns>
+        private bool SelectColor()
+        {
+            ColorSelection CS = new ColorSelection();
+            if (CS.ShowDialog() != DialogResult.OK)
+            {
+                CS.Dispose();
+                return false;
+            }
+            FromIC = CS.FromC;
+            ToIC = CS.ToC;
+            CS.Dispose();
+            return true;
+        }
+
+        /// <summary>
+        /// 选择需要进行唯一值化操作的图层。
+        /// </summary>
+        /// <param name="enumLayer">用于初始化选择列表的枚举图层。</param>
+        /// <returns>操作是否成功。</returns>
+        private bool SelectLayer(IEnumLayer enumLayer)
+        {
+            LayerSelection LS = new LayerSelection(enumLayer);
+            if (LS.ShowDialog() != DialogResult.OK)
+            {
+                LS.Dispose();
+                return false;
+            }
+            SelectedLyrIndex = LS.selectionIndex;
+            LS.Dispose();
+            if (SelectedLyrIndex.Count < 1)
+            {
+                throw new ArgumentOutOfRangeException("未选中任何图层！");
+            }
+            return true;
         }
 
         /// <summary>
