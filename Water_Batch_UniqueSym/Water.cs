@@ -12,6 +12,8 @@ using ESRI.ArcGIS.Display;
 using ESRI.ArcGIS.DataSourcesRaster;
 using System.Windows.Forms;
 using System.Collections.Generic;
+using ESRI.ArcGIS.ArcScene;
+using ESRI.ArcGIS.Analyst3D;
 
 namespace Water_Batch_UniqueSym
 {
@@ -73,10 +75,19 @@ namespace Water_Batch_UniqueSym
         #endregion
         #endregion
 
+        private enum ApplicationType
+        {
+            None = 0,
+            ArcMap = 1,
+            ArcScene = 2,
+        }
+
         private IApplication m_application;
         IMap m_map = null;
+        IScene m_scene = null;
         IRgbColor FromIC = new RgbColorClass();
         IRgbColor ToIC = new RgbColorClass();
+        ApplicationType applicationType = ApplicationType.None;
 
         public Water()
         {
@@ -84,9 +95,9 @@ namespace Water_Batch_UniqueSym
             // TODO: Define values for the public properties
             //
             base.m_category = "SRTP"; //localizable text
-            base.m_caption = "洪水色带表示v3.0(20200110)。";  //localizable text
-            base.m_message = "将所有栅格图层以用户选择的起止颜色创建的色带表示，并将值为0的栅格设为透明色。";  //localizable text 
-            base.m_toolTip = "洪水色带表示v3.0(20200110)。";  //localizable text 
+            base.m_caption = "洪水色带表示v4.0(20200208)。";  //localizable text
+            base.m_message = "将所有用户选定的栅格图层以用户选择的起止颜色创建的色带表示，并将值为0的栅格设为透明色。";  //localizable text 
+            base.m_toolTip = "洪水色带表示v4.0(20200208)。";  //localizable text 
             base.m_name = "Water_unique";   //unique id, non-localizable (e.g. "MyCategory_ArcMapCommand")
 
             try
@@ -116,13 +127,17 @@ namespace Water_Batch_UniqueSym
 
             m_application = hook as IApplication;
 
-            //Disable if it is not ArcMap
+            //判断应用类型
             if (hook is IMxApplication)
+                applicationType = ApplicationType.ArcMap;
+            if (hook is ISxApplication)
+                applicationType = ApplicationType.ArcScene;
+
+            //判断应用类型不为None则启用工具
+            if (applicationType != ApplicationType.None)
                 base.m_enabled = true;
             else
                 base.m_enabled = false;
-
-            // TODO:  Add other initialization code
         }
 
         /// <summary>
@@ -138,8 +153,26 @@ namespace Water_Batch_UniqueSym
                     return;
                 }
                 IDocument document = m_application.Document;
-                IMxDocument mxDocument = (IMxDocument)(document);
-                m_map = mxDocument.FocusMap;
+
+                switch (applicationType)
+                {
+                    case ApplicationType.ArcMap:
+                        {
+                            IMxDocument mxDocument = (IMxDocument)(document);
+                            if (mxDocument != null)
+                                m_map = mxDocument.FocusMap;
+
+                            break;
+                        }
+                    case ApplicationType.ArcScene:
+                        {
+                            ISxDocument sxDocument = (ISxDocument)(document);
+                            if (sxDocument != null)
+                                m_scene = sxDocument.Scene;
+                            break;
+                        }
+                }
+
                 if (m_map == null)
                     return;
 
