@@ -85,7 +85,7 @@ namespace Water_Batch_UniqueSym
             ArcScene = 2,
         }
 
-        private IApplication m_application;
+        IApplication m_application;
         IActiveView activeView;
         IMap m_map = null;
         IScene m_scene = null;
@@ -100,9 +100,9 @@ namespace Water_Batch_UniqueSym
             // TODO: Define values for the public properties
             //
             base.m_category = "SRTP"; //localizable text
-            base.m_caption = "洪水色带表示v4.0(20200208)。";  //localizable text
+            base.m_caption = "洪水色带表示v4.1(20200210)。";  //localizable text
             base.m_message = "将所有用户选定的栅格图层以用户选择的起止颜色创建的色带表示，并将值为0的栅格设为透明色。";  //localizable text 
-            base.m_toolTip = "洪水色带表示v4.0(20200208)。";  //localizable text 
+            base.m_toolTip = "洪水色带表示v4.1(20200210)。";  //localizable text 
             base.m_name = "Water_unique";   //unique id, non-localizable (e.g. "MyCategory_ArcMapCommand")
 
             try
@@ -131,7 +131,6 @@ namespace Water_Batch_UniqueSym
                 return;
 
             m_application = hook as IApplication;
-
             //判断应用类型
             if (hook is IMxApplication)
                 applicationType = ApplicationType.ArcMap;
@@ -152,11 +151,8 @@ namespace Water_Batch_UniqueSym
         {
             try
             {
-                // TODO: Add Water.OnClick implementation
                 if (m_application == null)
-                {
                     return;
-                }
                 IDocument document = m_application.Document;
 
                 //根据应用类型初始化
@@ -269,7 +265,10 @@ namespace Water_Batch_UniqueSym
                 }
                 pProDlg.HideDialog();
                 //刷新
-                activeView.PartialRefresh(esriViewDrawPhase.esriViewAll, null, null);
+                if (activeView == null)
+                    throw new Exception("活动视图为空！ ");
+                //activeView.Activate(m_application.hWnd);
+                activeView.Refresh();
             }
             catch (Exception err)
             {
@@ -352,7 +351,8 @@ namespace Water_Batch_UniqueSym
                     ToColor = pToColor,
                     Size = uniqueValues.Count
                 };
-                colorRamp.CreateRamp(out bool pOk);
+                bool pOk;
+                colorRamp.CreateRamp(out pOk);
 
                 //设置标题
                 uniqueValueRenderer.HeadingCount = 1;
