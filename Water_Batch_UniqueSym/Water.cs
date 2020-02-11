@@ -177,11 +177,11 @@ namespace Water_Batch_UniqueSym
                             //有图层则选颜色
                             if (m_map.LayerCount == 0)
                                 return;
-                            if (Common.SelectColor(out FromIC,out ToIC) == false)
+                            if (Common.SelectColor(out FromIC, out ToIC) == false)
                                 return;
 
                             //选图层
-                            if (Common.SelectLayer(m_map.Layers,out SelectedLyrIndex) == false)
+                            if (Common.SelectLayer(m_map.Layers, out SelectedLyrIndex) == false)
                                 return;
                             break;
                         }
@@ -269,6 +269,13 @@ namespace Water_Batch_UniqueSym
                     IRasterRenderer pRasterRenderer = UniqueValueRender(rasterLayer); //渲染唯一值
                     rasterLayer.Renderer = pRasterRenderer;
                     pRasterRenderer.Update();
+                    if (applicationType == ApplicationType.ArcScene)
+                    {
+                        IDisplay display = m_scene.SceneGraph as IDisplay;
+                        if (display == null)
+                            throw new ArgumentNullException("显示对象为空。");
+                        pRasterRenderer.Draw(rasterLayer.Raster,esriDrawPhase.esriDPGeography,display,null);
+                    }
                 }
                 pProDlg.HideDialog();
                 //刷新
@@ -283,11 +290,25 @@ namespace Water_Batch_UniqueSym
                         }
                     case ApplicationType.ArcScene:
                         {
-                            if (m_sceneHookHelper.ActiveViewer == null)
-                                throw new Exception("无活动视图。");
-                           activeView.Refresh();
+                            //if (m_sceneHookHelper.ActiveViewer == null)
+                            //    throw new Exception("无活动视图。");
+                            activeView.Refresh();
                             //m_sceneHookHelper.ActiveViewer.Redraw(true);
-                            break;
+
+                            //IDisplay display = m_scene.SceneGraph as IDisplay;
+                            //if (display == null)
+                            //    throw new ArgumentNullException("显示对象为空。");
+                            //for (int i = 0; i < SelectedLyrIndex.Count; i++)
+                            //{
+                            //    IRasterLayer rasterLayer = m_scene.Layer[SelectedLyrIndex[i]] as IRasterLayer;
+                            //    rasterLayer.Draw(esriDrawPhase.esriDPGeography, display, null);
+                            //}
+
+                            //IViewers3D viewers3D = m_scene.SceneGraph as IViewers3D;
+                            //if (viewers3D == null)
+                            //     throw new ArgumentNullException("3D显示对象为空。");
+                            //viewers3D.RefreshViewers();
+                                break;
                         }
                     default:
                         {

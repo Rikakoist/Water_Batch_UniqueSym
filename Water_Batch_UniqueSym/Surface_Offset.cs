@@ -86,9 +86,9 @@ namespace Water_Batch_UniqueSym
             // TODO: Define values for the public properties
             //
             base.m_category = "SRTP"; //localizable text
-            base.m_caption = "洪水自定义表面及偏移调整v2.0(20200212)。";  //localizable text
+            base.m_caption = "洪水自定义表面及偏移调整v2.1(20200212)。";  //localizable text
             base.m_message = "将所有用户选定的栅格图层在用户选择的自定义表面上浮动，并批量设置图层偏移。";  //localizable text 
-            base.m_toolTip = "洪水自定义表面及偏移调整v2.0(20200212)。";  //localizable text 
+            base.m_toolTip = "洪水自定义表面及偏移调整v2.1(20200212)。";  //localizable text 
             base.m_name = "Surface_Offset";   //unique id, non-localizable (e.g. "MyCategory_ArcMapCommand")
 
             try
@@ -163,8 +163,8 @@ namespace Water_Batch_UniqueSym
                     return;
 
                 //选择基准面
-                if (Common.SelectLayer(m_scene.Layers, out SelectedLyrIndex,true,"选择自定义表面") == false)
-                    return;                  
+                if (Common.SelectLayer(m_scene.Layers, out SelectedLyrIndex, true, "选择自定义表面") == false)
+                    return;
 
                 //QI
                 IRasterLayer baseRasterLayer = m_scene.Layer[SelectedLyrIndex[0]] as IRasterLayer;  //不管选多少个只选第一个
@@ -174,11 +174,11 @@ namespace Water_Batch_UniqueSym
                 if (raster == null)
                     throw new ArgumentNullException("自定义表面Raster转换失败，为空。");
                 IRasterSurface rasterSurface = new RasterSurfaceClass();
-                rasterSurface.PutRaster(raster,0);
+                rasterSurface.PutRaster(raster, 0);
                 ISurface surface = rasterSurface as ISurface;
 
-                    //选择图层
-                    if (Common.SelectLayer(m_scene.Layers, out SelectedLyrIndex) == false)
+                //选择图层
+                if (Common.SelectLayer(m_scene.Layers, out SelectedLyrIndex, false, "选择要进行偏移的图层") == false)
                     return;
 
                 //选择偏移量
@@ -186,9 +186,10 @@ namespace Water_Batch_UniqueSym
                 if (NS.ShowDialog() != DialogResult.OK)
                     return;
                 double Offset = NS.Result;
+                bool DisableCache = NS.DisableCache;
 
-                    //Create a CancelTracker.
-                    ITrackCancel pTrackCancel = new CancelTrackerClass();
+                //Create a CancelTracker.
+                ITrackCancel pTrackCancel = new CancelTrackerClass();
 
                 //Create the ProgressDialog. This automatically displays the dialog
                 IProgressDialogFactory pProgDlgFactory = new ProgressDialogFactoryClass();
@@ -237,9 +238,14 @@ namespace Water_Batch_UniqueSym
                     }
 
                     //设置I3DProperties
-                    p3DProperties.BaseOption = esriBaseOption.esriBaseSurface;
-                    p3DProperties.BaseSurface = surface;
-                    p3DProperties.OffsetExpressionString = Offset.ToString();
+                    p3DProperties.BaseOption = esriBaseOption.esriBaseSurface;  //基准面浮动
+                    p3DProperties.BaseSurface = surface;    //基准面
+                    p3DProperties.OffsetExpressionString = Offset.ToString();   //偏移常量
+                    if (DisableCache)
+                    {
+                        p3DProperties.RenderMode = esriRenderMode.esriRenderImmediate;  //直接从文件渲染
+                        p3DProperties.RenderVisibility = esriRenderVisibility.esriRenderWhenStopped;    //停止导航时渲染
+                    }
                     p3DProperties.Apply3DProperties(rasterLayer);
                 }
                 pProDlg.HideDialog();

@@ -13,6 +13,7 @@ namespace Water_Batch_UniqueSym
     public partial class NumSelect : Form
     {
         public double Result = 0;
+        public bool DisableCache = false;
 
         public NumSelect(string Title = "输入偏移数值")
         {
@@ -27,6 +28,7 @@ namespace Water_Batch_UniqueSym
             {
                 if (Double.TryParse(NumTextBox.Text.Trim(), out Result) == true)
                 {
+                    this.DisableCache = DisableCacheCheckBox.Checked;
                     this.DialogResult = DialogResult.OK;
                     this.Close();
                 }
