@@ -108,6 +108,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common.cs" />
     <Compile Include="LayerSelection.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -132,6 +133,7 @@
     <Compile Include="ColorSelection.Designer.cs">
       <DependentUpon>ColorSelection.cs</DependentUpon>
     </Compile>
+    <Compile Include="Surface_Offset.cs" />
     <Compile Include="Water.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -156,6 +158,9 @@
       <Generator>PublicSettingsSingleFileGenerator</Generator>
       <LastGenOutput>IRgbColorSettings.Designer.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Surface_Offset.bmp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

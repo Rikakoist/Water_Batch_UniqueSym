@@ -14,6 +14,7 @@ using System.Windows.Forms;
 using System.Collections.Generic;
 using ESRI.ArcGIS.ArcScene;
 using ESRI.ArcGIS.Analyst3D;
+using ESRI.ArcGIS.Controls;
 
 namespace Water_Batch_UniqueSym
 {
@@ -78,13 +79,8 @@ namespace Water_Batch_UniqueSym
         /// <summary>
         /// 应用类型枚举。
         /// </summary>
-        private enum ApplicationType
-        {
-            None = 0,
-            ArcMap = 1,
-            ArcScene = 2,
-        }
 
+        ISceneHookHelper m_sceneHookHelper = null;
         IApplication m_application;
         IActiveView activeView;
         IMap m_map = null;
@@ -127,21 +123,32 @@ namespace Water_Batch_UniqueSym
         /// <param name="hook">Instance of the application</param>
         public override void OnCreate(object hook)
         {
-            if (hook == null)
-                return;
+            try
+            {
+                if (hook == null)
+                    return;
 
-            m_application = hook as IApplication;
-            //判断应用类型
-            if (hook is IMxApplication)
-                applicationType = ApplicationType.ArcMap;
-            if (hook is ISxApplication)
-                applicationType = ApplicationType.ArcScene;
+                m_application = hook as IApplication;
+                //判断应用类型
+                if (hook is IMxApplication)
+                    applicationType = ApplicationType.ArcMap;
+                if (hook is ISxApplication)
+                {
+                    applicationType = ApplicationType.ArcScene;
+                    m_sceneHookHelper = new SceneHookHelperClass();
+                    m_sceneHookHelper.Hook = hook;
+                }
 
-            //判断应用类型不为None则启用工具
-            if (applicationType != ApplicationType.None)
-                base.m_enabled = true;
-            else
-                base.m_enabled = false;
+                //判断应用类型不为None则启用工具
+                if (applicationType != ApplicationType.None)
+                    base.m_enabled = true;
+                else
+                    base.m_enabled = false;
+            }
+            catch(Exception err)
+            {
+                MessageBox.Show(err.ToString());
+            }
         }
 
         /// <summary>
@@ -170,11 +177,11 @@ namespace Water_Batch_UniqueSym
                             //有图层则选颜色
                             if (m_map.LayerCount == 0)
                                 return;
-                            if (SelectColor() == false)
+                            if (Common.SelectColor(out FromIC,out ToIC) == false)
                                 return;
 
                             //选图层
-                            if (SelectLayer(m_map.Layers) == false)
+                            if (Common.SelectLayer(m_map.Layers,out SelectedLyrIndex) == false)
                                 return;
                             break;
                         }
@@ -190,11 +197,11 @@ namespace Water_Batch_UniqueSym
                             //有图层则选颜色
                             if (m_scene.LayerCount == 0)
                                 return;
-                            if (SelectColor() == false)
+                            if (Common.SelectColor(out FromIC, out ToIC) == false)
                                 return;
 
                             //选图层
-                            if (SelectLayer(m_scene.Layers) == false)
+                            if (Common.SelectLayer(m_scene.Layers, out SelectedLyrIndex) == false)
                                 return;
                             break;
                         }
@@ -267,53 +274,30 @@ namespace Water_Batch_UniqueSym
                 //刷新
                 if (activeView == null)
                     throw new Exception("活动视图为空！ ");
-                //activeView.Activate(m_application.hWnd);
-                activeView.Refresh();
+                switch (applicationType)
+                {
+                    case ApplicationType.ArcMap:
+                        {
+                            activeView.Refresh();
+                            break;
+                        }
+                    case ApplicationType.ArcScene:
+                        {
+                            if (m_sceneHookHelper.ActiveViewer == null)
+                                throw new Exception("无活动视图。");
+                            m_sceneHookHelper.ActiveViewer.Redraw(false);
+                            break;
+                        }
+                    default:
+                        {
+                            throw new ArgumentException("未指定应用类型。");
+                        }
+                }
             }
             catch (Exception err)
             {
                 MessageBox.Show(err.ToString());
             }
-        }
-
-        /// <summary>
-        /// 选择起止颜色。
-        /// </summary>
-        /// <returns>操作是否成功。</returns>
-        private bool SelectColor()
-        {
-            ColorSelection CS = new ColorSelection();
-            if (CS.ShowDialog() != DialogResult.OK)
-            {
-                CS.Dispose();
-                return false;
-            }
-            FromIC = CS.FromC;
-            ToIC = CS.ToC;
-            CS.Dispose();
-            return true;
-        }
-
-        /// <summary>
-        /// 选择需要进行唯一值化操作的图层。
-        /// </summary>
-        /// <param name="enumLayer">用于初始化选择列表的枚举图层。</param>
-        /// <returns>操作是否成功。</returns>
-        private bool SelectLayer(IEnumLayer enumLayer)
-        {
-            LayerSelection LS = new LayerSelection(enumLayer);
-            if (LS.ShowDialog() != DialogResult.OK)
-            {
-                LS.Dispose();
-                return false;
-            }
-            SelectedLyrIndex = LS.selectionIndex;
-            LS.Dispose();
-            if (SelectedLyrIndex.Count < 1)
-            {
-                throw new ArgumentOutOfRangeException("未选中任何图层！");
-            }
-            return true;
         }
 
         /// <summary>
