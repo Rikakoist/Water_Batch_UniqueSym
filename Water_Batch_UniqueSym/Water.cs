@@ -285,7 +285,8 @@ namespace Water_Batch_UniqueSym
                         {
                             if (m_sceneHookHelper.ActiveViewer == null)
                                 throw new Exception("无活动视图。");
-                            m_sceneHookHelper.ActiveViewer.Redraw(false);
+                           activeView.Refresh();
+                            //m_sceneHookHelper.ActiveViewer.Redraw(true);
                             break;
                         }
                     default:

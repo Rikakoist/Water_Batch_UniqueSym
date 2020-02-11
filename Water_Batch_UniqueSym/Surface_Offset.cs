@@ -12,6 +12,7 @@ using ESRI.ArcGIS.Controls;
 using ESRI.ArcGIS.Display;
 using ESRI.ArcGIS.esriSystem;
 using ESRI.ArcGIS.Framework;
+using ESRI.ArcGIS.Geodatabase;
 
 namespace Water_Batch_UniqueSym
 {
@@ -85,9 +86,9 @@ namespace Water_Batch_UniqueSym
             // TODO: Define values for the public properties
             //
             base.m_category = "SRTP"; //localizable text
-            base.m_caption = "洪水自定义表面及偏移调整v1.0(20200211)。";  //localizable text
+            base.m_caption = "洪水自定义表面及偏移调整v2.0(20200212)。";  //localizable text
             base.m_message = "将所有用户选定的栅格图层在用户选择的自定义表面上浮动，并批量设置图层偏移。";  //localizable text 
-            base.m_toolTip = "洪水自定义表面及偏移调整v1.0(20200211)。";  //localizable text 
+            base.m_toolTip = "洪水自定义表面及偏移调整v2.0(20200212)。";  //localizable text 
             base.m_name = "Surface_Offset";   //unique id, non-localizable (e.g. "MyCategory_ArcMapCommand")
 
             try
@@ -160,11 +161,34 @@ namespace Water_Batch_UniqueSym
                 //有图层选图层
                 if (m_scene.LayerCount == 0)
                     return;
-                if (Common.SelectLayer(m_scene.Layers, out SelectedLyrIndex) == false)
+
+                //选择基准面
+                if (Common.SelectLayer(m_scene.Layers, out SelectedLyrIndex,true,"选择自定义表面") == false)
+                    return;                  
+
+                //QI
+                IRasterLayer baseRasterLayer = m_scene.Layer[SelectedLyrIndex[0]] as IRasterLayer;  //不管选多少个只选第一个
+                if (baseRasterLayer == null)
+                    throw new ArgumentNullException("自定义表面RasterLayer转换失败，为空。");
+                IRaster raster = baseRasterLayer.Raster;
+                if (raster == null)
+                    throw new ArgumentNullException("自定义表面Raster转换失败，为空。");
+                IRasterSurface rasterSurface = new RasterSurfaceClass();
+                rasterSurface.PutRaster(raster,0);
+                ISurface surface = rasterSurface as ISurface;
+
+                    //选择图层
+                    if (Common.SelectLayer(m_scene.Layers, out SelectedLyrIndex) == false)
                     return;
 
-                //Create a CancelTracker.
-                ITrackCancel pTrackCancel = new CancelTrackerClass();
+                //选择偏移量
+                NumSelect NS = new NumSelect();
+                if (NS.ShowDialog() != DialogResult.OK)
+                    return;
+                double Offset = NS.Result;
+
+                    //Create a CancelTracker.
+                    ITrackCancel pTrackCancel = new CancelTrackerClass();
 
                 //Create the ProgressDialog. This automatically displays the dialog
                 IProgressDialogFactory pProgDlgFactory = new ProgressDialogFactoryClass();
@@ -183,6 +207,7 @@ namespace Water_Batch_UniqueSym
 
                 bool bCont = true;
 
+                //对每一个选中的图层进行操作
                 for (int i = 0; i < SelectedLyrIndex.Count; i++)
                 {
                     //m_application.StatusBar.set_Message(0, i.ToString());
@@ -191,6 +216,7 @@ namespace Water_Batch_UniqueSym
                     if (!bCont)
                         break;
 
+                    //选中一个栅格图层
                     IRasterLayer rasterLayer = m_scene.Layer[SelectedLyrIndex[i]] as IRasterLayer;
                     if (rasterLayer == null)
                     {
@@ -198,22 +224,38 @@ namespace Water_Batch_UniqueSym
                         continue;
                     }
 
+                    I3DProperties p3DProperties = null;
+                    ILayerExtensions layerExtensions = rasterLayer as ILayerExtensions;
 
+                    //遍历LayerExtensions找到I3DProperties
+                    for (int j = 0; j < layerExtensions.ExtensionCount; j++)
+                    {
+                        if (layerExtensions.get_Extension(j) is I3DProperties)
+                        {
+                            p3DProperties = layerExtensions.get_Extension(j) as I3DProperties;
+                        }
+                    }
+
+                    //设置I3DProperties
+                    p3DProperties.BaseOption = esriBaseOption.esriBaseSurface;
+                    p3DProperties.BaseSurface = surface;
+                    p3DProperties.OffsetExpressionString = Offset.ToString();
+                    p3DProperties.Apply3DProperties(rasterLayer);
                 }
                 pProDlg.HideDialog();
                 //刷新
-                //if (activeView == null)
-                //    throw new Exception("活动视图为空！ ");
+                if (activeView == null)
+                    throw new Exception("活动视图为空！ ");
                 if (m_sceneHookHelper.ActiveViewer == null)
                     throw new Exception("无活动视图！");
-                m_sceneHookHelper.ActiveViewer.Redraw(false);
+                activeView.Refresh();
+                //m_sceneHookHelper.ActiveViewer.Redraw(true);
             }
             catch (Exception err)
             {
                 MessageBox.Show(err.ToString());
             }
         }
-
         #endregion
     }
 }

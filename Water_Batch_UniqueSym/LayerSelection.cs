@@ -14,19 +14,30 @@ namespace Water_Batch_UniqueSym
     public partial class LayerSelection : Form
     {
         public List<int> selectionIndex = new List<int>();  //选择的索引列表
+        private bool singleSelect = false;  //是否单选
 
-        public LayerSelection(IEnumLayer enumLayer)
+        public LayerSelection(IEnumLayer enumLayer, bool SingleSelect, string Title)
         {
             InitializeComponent();
             LayerSelectionCheckedListBox.Items.Clear(); //启动时清空选定项
+            singleSelect = SingleSelect;
+            this.Text = Title;
 
+            if (singleSelect)
+            {
+                SelectedCountLabel.Visible = false;
+            }
+            else
+            {
+                SelectedCountLabel.Visible = true;
+            }
             //遍历图层
             enumLayer.Reset();
             ILayer layer = enumLayer.Next();
             while (layer != null)
             {
                 string lyrInfo = layer.Name;
-                if (layer is IRasterLayer rasterLayer)
+                if ((layer is IRasterLayer rasterLayer) && (!singleSelect))
                 {
                     LayerSelectionCheckedListBox.Items.Add(lyrInfo, true);   //是栅格则勾选
                 }
@@ -34,6 +45,7 @@ namespace Water_Batch_UniqueSym
                 {
                     LayerSelectionCheckedListBox.Items.Add(lyrInfo, false);
                 }
+
                 layer = enumLayer.Next();
             }
             if (LayerSelectionCheckedListBox.Items.Count < 1)

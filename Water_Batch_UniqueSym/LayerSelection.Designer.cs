@@ -48,7 +48,7 @@
             this.LayerSelectionCheckedListBox.FormattingEnabled = true;
             this.LayerSelectionCheckedListBox.Location = new System.Drawing.Point(12, 60);
             this.LayerSelectionCheckedListBox.Name = "LayerSelectionCheckedListBox";
-            this.LayerSelectionCheckedListBox.Size = new System.Drawing.Size(460, 439);
+            this.LayerSelectionCheckedListBox.Size = new System.Drawing.Size(460, 429);
             this.LayerSelectionCheckedListBox.TabIndex = 5;
             this.LayerSelectionCheckedListBox.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.LayerSelectionCheckedListBox_ItemCheck);
             // 
@@ -111,18 +111,19 @@
             // 
             // statusStrip1
             // 
+            this.statusStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.SelectedCountLabel});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 539);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 537);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(484, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(484, 24);
             this.statusStrip1.TabIndex = 6;
             this.statusStrip1.Text = "statusStrip1";
             // 
             // SelectedCountLabel
             // 
             this.SelectedCountLabel.Name = "SelectedCountLabel";
-            this.SelectedCountLabel.Size = new System.Drawing.Size(0, 17);
+            this.SelectedCountLabel.Size = new System.Drawing.Size(0, 19);
             // 
             // LayerSelection
             // 
@@ -142,7 +143,6 @@
             this.ShowIcon = false;
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "选择要进行唯一值化的图层";
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -159,6 +159,6 @@
         private System.Windows.Forms.Button AbortButton;
         private System.Windows.Forms.Button ConfirmButton;
         private System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.ToolStripStatusLabel SelectedCountLabel;
+        internal System.Windows.Forms.ToolStripStatusLabel SelectedCountLabel;
     }
 }

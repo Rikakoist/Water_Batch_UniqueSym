@@ -9,6 +9,9 @@ using System.Windows.Forms;
 
 namespace Water_Batch_UniqueSym
 {
+    /// <summary>
+    /// 应用类型枚举。
+    /// </summary>
     enum ApplicationType
     {
         None = 0,
@@ -46,10 +49,10 @@ namespace Water_Batch_UniqueSym
         /// <param name="enumLayer">用于初始化选择列表的枚举图层。</param>
         /// <param name="SelectedLyrIndex">输出的选中图层索引。</param>
         /// <returns>操作是否成功。</returns>
-        public static bool SelectLayer(IEnumLayer enumLayer, out List<int> SelectedLyrIndex)
+        public static bool SelectLayer(IEnumLayer enumLayer, out List<int> SelectedLyrIndex, bool IsSingleSelect = false, string Title = "选择要进行唯一值化的图层")
         {
             SelectedLyrIndex = null;
-            LayerSelection LS = new LayerSelection(enumLayer);
+            LayerSelection LS = new LayerSelection(enumLayer, IsSingleSelect, Title);
             if (LS.ShowDialog() != DialogResult.OK)
             {
                 LS.Dispose();
