@@ -82,6 +82,7 @@ namespace Water_Batch_UniqueSym
 
         ISceneHookHelper m_sceneHookHelper = null;
         IApplication m_application;
+        ITOCControl m_TOCControl;
         IActiveView activeView;
         IMap m_map = null;
         IScene m_scene = null;
@@ -129,9 +130,12 @@ namespace Water_Batch_UniqueSym
                     return;
 
                 m_application = hook as IApplication;
+
                 //判断应用类型
                 if (hook is IMxApplication)
+                {
                     applicationType = ApplicationType.ArcMap;
+                }
                 if (hook is ISxApplication)
                 {
                     applicationType = ApplicationType.ArcScene;
@@ -268,14 +272,19 @@ namespace Water_Batch_UniqueSym
                     //设置图层渲染器并更新
                     IRasterRenderer pRasterRenderer = UniqueValueRender(rasterLayer); //渲染唯一值
                     rasterLayer.Renderer = pRasterRenderer;
-                    pRasterRenderer.Update();
+                    rasterLayer.Renderer.Update();
+
+                    //==========================================
+                    //刷新看起来不起作用
                     if (applicationType == ApplicationType.ArcScene)
                     {
-                        IDisplay display = m_scene.SceneGraph as IDisplay;
-                        if (display == null)
-                            throw new ArgumentNullException("显示对象为空。");
-                        pRasterRenderer.Draw(rasterLayer.Raster,esriDrawPhase.esriDPGeography,display,null);
+                        m_scene.SceneGraph.Invalidate(rasterLayer,true, false);
+                        m_sceneHookHelper.ActiveViewer.Redraw(true);
+                        
+                        m_scene.SceneGraph.RefreshViewers();
+                        //pRasterRenderer.Draw(rasterLayer.Raster,esriDrawPhase.esriDPGeography,display,null);
                     }
+                    //==========================================
                 }
                 pProDlg.HideDialog();
                 //刷新
@@ -290,6 +299,9 @@ namespace Water_Batch_UniqueSym
                         }
                     case ApplicationType.ArcScene:
                         {
+                            //==========================================
+                            //刷新看起来不起作用
+
                             //if (m_sceneHookHelper.ActiveViewer == null)
                             //    throw new Exception("无活动视图。");
                             activeView.Refresh();
@@ -306,9 +318,10 @@ namespace Water_Batch_UniqueSym
 
                             //IViewers3D viewers3D = m_scene.SceneGraph as IViewers3D;
                             //if (viewers3D == null)
-                            //     throw new ArgumentNullException("3D显示对象为空。");
+                            //    throw new ArgumentNullException("3D显示对象为空。");
                             //viewers3D.RefreshViewers();
-                                break;
+                            break;
+                            //==========================================
                         }
                     default:
                         {

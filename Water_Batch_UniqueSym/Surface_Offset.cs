@@ -249,13 +249,16 @@ namespace Water_Batch_UniqueSym
                     p3DProperties.Apply3DProperties(rasterLayer);
                 }
                 pProDlg.HideDialog();
-                //刷新
+
+                //==========================================
+                //刷新，不起作用
                 if (activeView == null)
                     throw new Exception("活动视图为空！ ");
                 if (m_sceneHookHelper.ActiveViewer == null)
                     throw new Exception("无活动视图！");
                 activeView.Refresh();
-                //m_sceneHookHelper.ActiveViewer.Redraw(true);
+                m_sceneHookHelper.ActiveViewer.Redraw(true);
+                //==========================================
             }
             catch (Exception err)
             {
