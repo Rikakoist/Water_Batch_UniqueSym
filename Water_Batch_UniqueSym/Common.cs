@@ -66,5 +66,14 @@ namespace Water_Batch_UniqueSym
             }
             return true;
         }
+
+        /// <summary>
+        /// 获取当前系统语言。
+        /// </summary>
+        public static void GetLanguage()
+        {
+            System.Globalization.RegionInfo currentRegion = System.Globalization.RegionInfo.CurrentRegion;
+            System.Globalization.CultureInfo[] cultureInfo = System.Globalization.CultureInfo.GetCultures(System.Globalization.CultureTypes.AllCultures);
+        }
     }
 }
