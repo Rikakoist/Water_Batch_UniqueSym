@@ -86,9 +86,9 @@ namespace Water_Batch_UniqueSym
             // TODO: Define values for the public properties
             //
             base.m_category = "SRTP"; //localizable text
-            base.m_caption = "洪水自定义表面及偏移调整v2.1(20200212)。";  //localizable text
+            base.m_caption = "洪水自定义表面及偏移调整v2.2(20200511)。";  //localizable text
             base.m_message = "将所有用户选定的栅格图层在用户选择的自定义表面上浮动，并批量设置图层偏移。";  //localizable text 
-            base.m_toolTip = "洪水自定义表面及偏移调整v2.1(20200212)。";  //localizable text 
+            base.m_toolTip = "洪水自定义表面及偏移调整v2.2(20200511)。";  //localizable text 
             base.m_name = "Surface_Offset";   //unique id, non-localizable (e.g. "MyCategory_ArcMapCommand")
 
             try
@@ -181,6 +181,12 @@ namespace Water_Batch_UniqueSym
                 if (Common.SelectLayer(m_scene.Layers, out SelectedLyrIndex, false, "选择要进行偏移的图层") == false)
                     return;
 
+                //选择倍数
+                NumSelect MultiNS = new NumSelect("输入夸大倍数",true);
+                if (MultiNS.ShowDialog() != DialogResult.OK)
+                    return;
+                double Multiplier = MultiNS.Result;
+
                 //选择偏移量
                 NumSelect NS = new NumSelect();
                 if (NS.ShowDialog() != DialogResult.OK)
@@ -238,6 +244,7 @@ namespace Water_Batch_UniqueSym
                     }
 
                     //设置I3DProperties
+                    p3DProperties.ZFactor = Multiplier; //系数
                     p3DProperties.BaseOption = esriBaseOption.esriBaseSurface;  //基准面浮动
                     p3DProperties.BaseSurface = surface;    //基准面
                     p3DProperties.OffsetExpressionString = Offset.ToString();   //偏移常量

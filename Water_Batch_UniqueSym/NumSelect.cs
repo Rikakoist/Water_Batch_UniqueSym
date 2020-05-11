@@ -15,10 +15,15 @@ namespace Water_Batch_UniqueSym
         public double Result = 0;
         public bool DisableCache = false;
 
-        public NumSelect(string Title = "输入偏移数值")
+        public NumSelect(string Title = "输入偏移数值",bool DisableCheckBox = false)
         {
             InitializeComponent();
             this.Text = Title;
+            if (DisableCheckBox)
+            {
+                this.DisableCacheCheckBox.Enabled = false;
+                this.DisableCacheCheckBox.Visible = false;
+            }
         }
 
         //确认
